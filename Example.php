@@ -13,7 +13,7 @@ $rows = $test->select("*");
 /* Iterating Results */
 foreach($rows as $r){
     /* Printing Data */
-    echo "Simple Query Result: " . also .'<br/>';
+    echo "Simple Query Result: " . $r['name'] .'<br/>';
 }
 
 /* 2. Applying Object Query */
