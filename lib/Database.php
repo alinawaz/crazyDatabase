@@ -9,6 +9,7 @@
  * Version. 2.0.0 {30 April, 2014} ---Beta
  * Version. 2.1.0 {10 June, 2015} ---Beta
  * Version. 2.1.1 {23 June, 2015} ---Stable
+ * Version. 2.2.0 {28 July, 2016} ---Major Revision
  */
 
 class Database {
@@ -19,6 +20,7 @@ class Database {
     public static $DBuser = "root";
     public static $DBpass = '';
     private static $connected = false;
+    public $conn = FALSE; // connection reference
 
     /*
      * Function: Connect
@@ -28,8 +30,10 @@ class Database {
 
     public static function Connect() {
         Database::close();
-        mysql_connect(Database::$server, Database::$DBuser, Database::$DBpass) or die(mysql_error());
-        mysql_select_db(Database::$db_name) or die(mysql_error());
+        $this->conn = mysqli_connect(Database::$server, Database::$DBuser, Database::$DBpass, Database::$db_name);
+        if (mysqli_connect_errno()) {
+            echo "Crazy Database MSQLI Error: " . mysqli_connect_error();
+        }
         Database::$connected = true;
         return true;
     }
@@ -42,7 +46,7 @@ class Database {
 
     public static function Close() {
         if (Database::$connected == true) {
-            mysql_close();
+            mysqli_close($this->conn);
             Database::$connected = false;
             return true;
         }
@@ -71,7 +75,7 @@ class Database {
 
     public static function Query($QueryText) {
         Database::connect();
-        $result = mysql_query($QueryText) or die(mysql_error());
+        $result = mysqli_query($this->conn,$QueryText);
         return $result;
     }
 
@@ -83,7 +87,7 @@ class Database {
 
     public static function objectQuery($QueryText) {
         Database::connect();
-        $result = mysql_query($QueryText) or die(mysql_error());
+        $result = mysqli_query($this->conn,$QueryText);
         return new rows($result);
     }
 
@@ -108,7 +112,7 @@ class rows {
      */
 
     function __construct($queryResult) {
-        while ($tempData = mysql_fetch_assoc($queryResult)) {
+        while ($tempData = mysqli_fetch_assoc($queryResult)) {
             rows::$dataArray[] = $tempData;
         }
     }
@@ -293,12 +297,12 @@ class Table {
         $queryString = "select $selectString from " . Table::$tableName . $whereString . " " . $afterWhere;
         $sql = $db->query($queryString);
         $record = array();
-        while ($data = mysql_fetch_array($sql, MYSQLI_ASSOC)) {
+        while ($data = mysqli_fetch_assoc($sql)) {
             $record[] = $data;
         }
         return $record;
     }
-    
+
     /*
      * Function: selectObject
      * @Params [string(querySelectClause), array(queryWhereClause), string(queryAfterWhereClause)]
@@ -324,7 +328,7 @@ class Table {
         $sql = $db->objectQuery($queryString);
         return $sql;
     }
-    
+
     /*
      * Function: insert
      * @Params [array(columnAndValues)]
@@ -358,7 +362,7 @@ class Table {
         }
         return false;
     }
-    
+
     /*
      * Function: insert
      * @Params [array(columnAndValues), array(queryWhereClause)]
@@ -395,7 +399,7 @@ class Table {
         }
         return false;
     }
-    
+
     /*
      * Function: delete
      * @Params [array(queryWhereClause)]
@@ -422,7 +426,7 @@ class Table {
         }
         return false;
     }
-    
+
     /*
      * Function: truncate
      * @Params [nil]
