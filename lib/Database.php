@@ -16,11 +16,11 @@ class Database {
     /* Static Variables */
 
     public static $db_name = "test";
-    public static $server = "localhost";
+    public static $server = "127.0.0.1";
     public static $DBuser = "root";
     public static $DBpass = '';
     private static $connected = false;
-    public $conn = FALSE; // connection reference
+    public static $conn = FALSE; // connection reference
 
     /*
      * Function: Connect
@@ -30,7 +30,7 @@ class Database {
 
     public static function Connect() {
         Database::close();
-        $this->conn = mysqli_connect(Database::$server, Database::$DBuser, Database::$DBpass, Database::$db_name);
+        self::$conn = mysqli_connect(Database::$server, Database::$DBuser, Database::$DBpass, Database::$db_name);
         if (mysqli_connect_errno()) {
             echo "Crazy Database MSQLI Error: " . mysqli_connect_error();
         }
@@ -46,7 +46,7 @@ class Database {
 
     public static function Close() {
         if (Database::$connected == true) {
-            mysqli_close($this->conn);
+            mysqli_close(self::$conn);
             Database::$connected = false;
             return true;
         }
@@ -75,7 +75,7 @@ class Database {
 
     public static function Query($QueryText) {
         Database::connect();
-        $result = mysqli_query($this->conn,$QueryText);
+        $result = mysqli_query(self::$conn,$QueryText);
         return $result;
     }
 
@@ -87,7 +87,7 @@ class Database {
 
     public static function objectQuery($QueryText) {
         Database::connect();
-        $result = mysqli_query($this->conn,$QueryText);
+        $result = mysqli_query(self::$conn,$QueryText);
         return new rows($result);
     }
 
